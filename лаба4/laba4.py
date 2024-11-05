@@ -8,7 +8,7 @@ num_to_text = {
 
 
 def find_hex_numbers_with_a(file_content):
-    """Ищет шестнадцатеричные числа с третьей справа цифрой 'A'."""
+    
 
     hex_pattern = r'\b[0-9A-Fa-f]+\b'
     hex_numbers = re.findall(hex_pattern, file_content)
@@ -18,7 +18,7 @@ def find_hex_numbers_with_a(file_content):
 
 
 def convert_number_to_text(number):
-    """Преобразует число в текстовое представление."""
+   
     return ' '.join(num_to_text[char] for char in number.upper())
 
 
