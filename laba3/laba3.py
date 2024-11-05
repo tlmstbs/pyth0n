@@ -6,7 +6,7 @@ num_to_text = {
 
 
 def is_hex_number(s):
-    """Проверка, является ли строка шестнадцатеричным числом."""
+    
     valid_chars = "0123456789ABCDEF"
     for char in s:
         if char.upper() not in valid_chars:
@@ -15,7 +15,7 @@ def is_hex_number(s):
 
 
 def hex_with_a_in_third_position(hex_numbers):
-    """Фильтрует шестнадцатеричные числа, у которых третья справа цифра 'A'."""
+    
     filtered_numbers = []
     for num in hex_numbers:
         if len(num) >= 3 and num[-3].upper() == 'A':
@@ -24,7 +24,7 @@ def hex_with_a_in_third_position(hex_numbers):
 
 
 def convert_number_to_text(number):
-    """Преобразует число в текстовое представление."""
+   
     return ' '.join(num_to_text[char] for char in number)
 
 
