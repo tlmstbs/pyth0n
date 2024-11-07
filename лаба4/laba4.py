@@ -16,38 +16,50 @@ num_to_text = {
     'A': 'а', 'B': 'бэ', 'C': 'це', 'D': 'дэ', 'E': 'е', 'F': 'эф'
 }
 
-
-def find_hex_numbers_with_a(file_content):
-    
-
-    hex_pattern = r'\b[0-9A-Fa-f]+\b'
-    hex_numbers = re.findall(hex_pattern, file_content)
-
-    filtered_numbers = [num for num in hex_numbers if len(num) >= 3 and num[-3].upper() == 'A']
-    return filtered_numbers
-
+def has_a_in_third_position(num):
+    return len(num) >= 3 and num[-3].upper() == 'A'
 
 def convert_number_to_text(number):
-   
-    return ' '.join(num_to_text[char] for char in number.upper())
+    if number[0] == '-':
+        text = 'минус ' + ' '.join(num_to_text[char] for char in number[1:].upper())
+    else:
+        text = ' '.join(num_to_text[char] for char in number.upper())
+    return text
 
 
-def main():
-    with open('input.txt', 'r') as file:
-        data = file.read()
+with open('input.txt', 'r') as file:
+    lines = file.readlines() 
 
-    filtered_numbers = find_hex_numbers_with_a(data)
+filtered_numbers = []
 
-    if not filtered_numbers:
-        print("Нет подходящих чисел.")
-        return
+for line in lines:
+    line = line.strip()
+    hex_pattern = r'-?[0-9A-Fa-f]+'
+    hex_numbers = re.findall(hex_pattern, line)
 
-    max_hex = max(filtered_numbers, key=lambda x: int(x, 16))
+    for num in hex_numbers:
+        if has_a_in_third_position(num):
+            filtered_numbers.append(num)
 
-    max_hex_text = convert_number_to_text(max_hex)
-    print("Максимальное число:", max_hex)
-    print("Число прописью:", max_hex_text)
+if not filtered_numbers:
+    print("Нет подходящих чисел.")
+    exit(0)
+
+decimal_values = [
+    (num, int(num, 16) if num[0] != '-' else -int(num[1:], 16))
+    for num in filtered_numbers
+]
+
+max_hex, _ = max(decimal_values, key=lambda x: x[1])
+
+max_hex_text = convert_number_to_text(max_hex)
+print("Максимальное число:", max_hex)
+print("Число прописью:", max_hex_text)
 
 
-if __name__ == "__main__":
-    main()
+
+
+
+
+
+
