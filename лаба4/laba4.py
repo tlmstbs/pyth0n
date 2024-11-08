@@ -21,7 +21,7 @@ num_to_text = {
 
 def has_a_in_third_position(num):
    
-    return re.search(r'.*A[\dA-Fa-f]{2}$', num, re.IGNORECASE) is not None
+      return re.search(r'[0-9A-Fa-f]*A[0-9A-Fa-f]{2}$', num, re.IGNORECASE) is not None
 
 
 def convert_number_to_text(number):
