@@ -1,21 +1,18 @@
 """Лабораторная работа №5
-Задана рекуррентная функция. Область определения функции – натуральные числа. 
-Написать программу сравнительного вычисления данной функции рекурсивно и итерационно. 
-Определить границы применимости рекурсивного и итерационного подхода. 
-Результаты сравнительного исследования времени вычисления представить в табличной форме. 
-Обязательное требование – минимизация времени выполнения и объема памяти.
+Задана рекуррентная функция. Область определения функции – натуральные числа.
+Написать программу сравнительного вычисления данной функции рекурсивно и итерационно.
+Определить границы применимости рекурсивного и итерационного подхода.
+Результаты сравнительного исследования времени вычисления представить в табличной форме.
+Обязательное требование – минимизация времени выполнения и объема памяти"""
 
 
-Вариант 28.	
-F(1) = 2; F(2) = 4; F(n) = (-1)n*(F(n-1)-F(n-2) /(3n)!) при n > 2. """
 
 
-import time
+
+import timeit
 import math
-from functools import lru_cache
 
 
-@lru_cache(maxsize=None)
 def recursive_f_optimized(n):
     if n == 1:
         return 2
@@ -34,10 +31,10 @@ def iterative_f_optimized(n):
 
     f_prev2 = 2  # F(1)
     f_prev1 = 4  # F(2)
-    factorial_3n = math.factorial(3) 
+    factorial_3n = math.factorial(3)
 
     for i in range(3, n + 1):
-        factorial_3n *= (3 * i - 2) * (3 * i - 1) * 3 * i
+        factorial_3n = math.factorial(3*i)
         f_curr = (-1) ** i * (f_prev1 - f_prev2 / factorial_3n)
         f_prev2, f_prev1 = f_prev1, f_curr
 
@@ -48,19 +45,19 @@ def compare_execution_times_and_limits(n_values, time_limit=1):
     results = []
     recursion_limit = None
     for n in n_values:
-        start_time = time.time()
+        start_time = timeit.timeit()
         try:
             recursive_result = recursive_f_optimized(n)
-            recursive_time = time.time() - start_time
+            recursive_time = timeit.timeit() - start_time
         except (RecursionError, OverflowError):
             recursive_result = "Recursion/Overflow Error"
             recursive_time = float('inf')
             if recursion_limit is None:
                 recursion_limit = n - 1
 
-        start_time = time.time()
+        start_time = timeit.timeit()
         iterative_result = iterative_f_optimized(n)
-        iterative_time = time.time() - start_time
+        iterative_time = timeit.timeit() - start_time
 
         if recursive_time > time_limit and recursion_limit is None:
             recursion_limit = n - 1
@@ -79,5 +76,5 @@ def compare_execution_times_and_limits(n_values, time_limit=1):
     print("Итеративный подход работает для больших n, но может замедлиться при очень больших значениях.")
 
 
-n_values = [1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 45]
+n_values = [3, 5]
 compare_execution_times_and_limits(n_values)
