@@ -2,169 +2,152 @@ import tkinter as tk
 import random
 
 # Глобальные переменные
-result_frame = game_frame = active_player = grid = btns = user_symbol = ai_symbol = None
+result_window = game_window = current_player = board = buttons = player_symbol = computer_symbol = None
 
-def is_winner(grid, player):  # Проверка победителя
-    for idx in range(3):
-        if all(grid[idx][j] == player for j in range(3)) or all(grid[j][idx] == player for j in range(3)):
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    position_top = int(screen_height / 2 - height / 2)
+    position_right = int(screen_width / 2 - width / 2)
+    window.geometry(f'{width}x{height}+{position_right}+{position_top}')
+
+def check_winner(board, player):
+    for i in range(3):
+        if all(board[i][j] == player for j in range(3)) or all(board[j][i] == player for j in range(3)):
             return True
-    if grid[0][0] == grid[1][1] == grid[2][2] == player or grid[0][2] == grid[1][1] == grid[2][0] == player:
+    if board[0][0] == board[1][1] == board[2][2] == player or board[0][2] == board[1][1] == board[2][0] == player:
         return True
     return False
 
-def is_draw(grid):
-    return all(grid[i][j] != "" for i in range(3) for j in range(3))
+def check_draw(board):
+    return all(board[i][j] != "" for i in range(3) for j in range(3))
 
-def end_game(message):
-    global result_frame
-    result_frame = tk.Toplevel()
-    result_frame.title("Игра окончена")
-    tk.Label(result_frame, text=message, font=("Helvetica", 24)).pack(padx=20, pady=20)
-    tk.Button(result_frame, text="Новая игра", command=reset_game).pack(pady=10)
-    tk.Button(result_frame, text="Выход", command=result_frame.quit).pack(pady=10)
+def game_over(message):
+    global result_window
+    result_window = tk.Toplevel()
+    result_window.title("Конец игры")
+    center_window(result_window, 400, 250)
 
-def reset_game():
-    game_frame.destroy()
-    result_frame.destroy()
-    main_menu.deiconify()
+    tk.Label(result_window, text=message, font=("Arial", 18, "bold"), fg="white", bg="darkblue", pady=20).pack(fill="both")
+    tk.Button(result_window, text="Новый раунд", font=("Arial", 14), bg="lightgreen", command=start_new_game).pack(pady=10, padx=20, fill="x")
+    tk.Button(result_window, text="Закрыть", font=("Arial", 14), bg="red", fg="white", command=result_window.quit).pack(pady=10, padx=20, fill="x")
 
-def initiate_game_X():  # Начало игры для крестиков
-    global active_player, grid, btns, user_symbol, ai_symbol, game_frame
-    grid = [["" for _ in range(3)] for _ in range(3)]
-    user_symbol, ai_symbol, active_player = "X", "O", "X"
-    btns = [[None for _ in range(3)] for _ in range(3)]
-    game_frame = tk.Toplevel(main_menu)
-    game_frame.title("Крестики-нолики")
+def start_new_game():
+    game_window.destroy()
+    result_window.destroy()
+    start_game_window.deiconify()
+
+def create_game_window():
+    global game_window
+    game_window = tk.Toplevel(start_game_window)
+    game_window.title("Крестики-нолики")
+    center_window(game_window, 600, 500)
+    game_window.configure(bg="lightgray")
+
+def start_game_X():
+    global current_player, board, buttons, player_symbol, computer_symbol
+    board = [["" for _ in range(3)] for _ in range(3)]
+    player_symbol, computer_symbol, current_player = "X", "O", "X"
+    buttons = [[None for _ in range(3)] for _ in range(3)]
+    create_game_window()
+    draw_board()
+    start_game_window.withdraw()
+
+def start_game_O():
+    global current_player, board, buttons, player_symbol, computer_symbol
+    board = [["" for _ in range(3)] for _ in range(3)]
+    player_symbol, computer_symbol = "O", "X"
+    current_player = computer_symbol
+    buttons = [[None for _ in range(3)] for _ in range(3)]
+    create_game_window()
+    draw_board()
+    computer_turn_first()
+    start_game_window.withdraw()
+
+def draw_board():
     for i in range(3):
         for j in range(3):
-            btns[i][j] = tk.Button(game_frame, text="", width=10, height=3, font=("Helvetica", 24),
-                                   command=lambda i=i, j=j: player_move(i, j))
-            btns[i][j].grid(row=i, column=j)
-    main_menu.withdraw()
+            buttons[i][j] = tk.Button(
+                game_window, text="", width=10, height=4, font=("Arial", 18, "bold"),
+                bg="white", activebackground="lightblue",
+                command=lambda i=i, j=j: player_turn(i, j)
+            )
+            buttons[i][j].grid(row=i, column=j, padx=5, pady=5)
 
-def initiate_game_O():  # Начало игры для ноликов
-    global active_player, grid, btns, user_symbol, ai_symbol, game_frame
-    grid = [["" for _ in range(3)] for _ in range(3)]
-    user_symbol = "O"
-    ai_symbol = "X"
-    active_player = ai_symbol
-    btns = [[None for _ in range(3)] for _ in range(3)]
-    game_frame = tk.Toplevel(main_menu)
-    game_frame.title("Крестики-нолики")
-    for i in range(3):
-        for j in range(3):
-            btns[i][j] = tk.Button(game_frame, text="", width=10, height=3, font=("Helvetica", 24),
-                                   command=lambda i=i, j=j: player_move(i, j))
-            btns[i][j].grid(row=i, column=j)
-    main_menu.withdraw()
-    ai_first_move()
-
-def player_move(i, j):
-    global active_player
-    if grid[i][j] == "":
-        grid[i][j] = active_player
-        btns[i][j].config(text=active_player, state="disabled")
-        if is_winner(grid, active_player):
-            end_game(f"Игрок ({active_player}) выиграл!")
+def player_turn(i, j):
+    global current_player
+    if board[i][j] == "":
+        board[i][j] = current_player
+        buttons[i][j].config(text=current_player, state="disabled", disabledforeground="black")
+        if check_winner(board, current_player):
+            game_over(f"Игрок ({current_player}) победил!")
             return
-        if is_draw(grid):
-            end_game("Ничья!")
+        if check_draw(board):
+            game_over("Ничья!")
             return
-        active_player = ai_symbol if active_player == user_symbol else user_symbol
-        if active_player == ai_symbol:
-            ai_move()
+        current_player = computer_symbol if current_player == player_symbol else player_symbol
+        if current_player == computer_symbol:
+            computer_turn()
 
-def ai_move():  # Ход компьютера
-    global active_player
+def computer_turn():
+    global current_player
     best_move = None
-    best_value = float('-inf')
-
 
     for i in range(3):
         for j in range(3):
-            if grid[i][j] == "":
-                grid[i][j] = ai_symbol
-                if is_winner(grid, ai_symbol):
+            if board[i][j] == "":
+                board[i][j] = computer_symbol
+                if check_winner(board, computer_symbol):
                     best_move = (i, j)
-                    grid[i][j] = ""
+                    board[i][j] = ""
                     break
-                grid[i][j] = ""
+                board[i][j] = ""
     if best_move is None:
         for i in range(3):
             for j in range(3):
-                if grid[i][j] == "":
-                    grid[i][j] = user_symbol
-                    if is_winner(grid, user_symbol):
+                if board[i][j] == "":
+                    board[i][j] = player_symbol
+                    if check_winner(board, player_symbol):
                         best_move = (i, j)
-                        grid[i][j] = ""
+                        board[i][j] = ""
                         break
-                    grid[i][j] = ""
+                    board[i][j] = ""
     if best_move is None:
-        best_value = float('-inf')
-        for i in range(3):
-            for j in range(3):
-                if grid[i][j] == "":
-                    grid[i][j] = ai_symbol
-                    move_value = minimax(grid, 0, False, float('-inf'), float('inf'))
-                    grid[i][j] = ""
-                    if move_value > best_value:
-                        best_value = move_value
-                        best_move = (i, j)
+        available_moves = [(i, j) for i in range(3) for j in range(3) if board[i][j] == ""]
+        best_move = random.choice(available_moves)
 
-    if best_move:
-        row, col = best_move
-        grid[row][col] = ai_symbol
-        btns[row][col].config(text=ai_symbol, state="disabled")
-    if is_winner(grid, ai_symbol):
-        end_game(f"Компьютер ({ai_symbol}) выиграл!")
+    row, col = best_move
+    board[row][col] = computer_symbol
+    buttons[row][col].config(text=computer_symbol, state="disabled", disabledforeground="black")
+
+    if check_winner(board, computer_symbol):
+        game_over(f"Компьютер ({computer_symbol}) победил!")
         return
-    if is_draw(grid):
-        end_game("Ничья!")
+    if check_draw(board):
+        game_over("Ничья!")
         return
 
-    active_player = user_symbol
+    current_player = player_symbol
 
-def ai_first_move():  # Первый ход компьютера
-    global active_player
-    available_moves = [(i, j) for i in range(3) for j in range(3) if grid[i][j] == ""]
+def computer_turn_first():
+    global current_player
+    available_moves = [(i, j) for i in range(3) for j in range(3) if board[i][j] == ""]
     first_move = random.choice(available_moves)
     row, col = first_move
-    grid[row][col] = ai_symbol
-    btns[row][col].config(text=ai_symbol, state="disabled")
-    active_player = user_symbol
-
-def minimax(grid, depth, is_maximizing, alpha, beta):
-    if is_winner(grid, ai_symbol): return 1
-    if is_winner(grid, user_symbol): return -1
-    if is_draw(grid): return 0
-    if is_maximizing:
-        max_eval = float('-inf')
-        for i in range(3):
-            for j in range(3):
-                if grid[i][j] == "":
-                    grid[i][j] = ai_symbol
-                    eval = minimax(grid, depth + 1, False, alpha, beta)
-                    grid[i][j] = ""
-                    max_eval = max(max_eval, eval)
-                    alpha = max(alpha, eval)
-                    if beta <= alpha: break
-        return max_eval
-    else:
-        min_eval = float('inf')
-        for i in range(3):
-            for j in range(3):
-                if grid[i][j] == "":
-                    grid[i][j] = user_symbol
-                    eval = minimax(grid, depth + 1, True, alpha, beta)
-                    grid[i][j] = ""
-                    min_eval = min(min_eval, eval)
-                    beta = min(beta, eval)
-                    if beta <= alpha: break
-        return min_eval
+    board[row][col] = computer_symbol
+    buttons[row][col].config(text=computer_symbol, state="disabled", disabledforeground="black")
+    current_player = player_symbol
 
 # Начальное окно выбора
-main_menu = tk.Tk()
-main_menu.title("Выбор игры")
-tk.Button(main_menu, text="Играть за крестики", width=20, height=2, font=("Helvetica", 14), command=initiate_game_X).pack(pady=5)
-tk.Button(main_menu, text="Играть за нолики", width=20, height=2, font=("Helvetica", 14), command=initiate_game_O).pack(pady=5)
-main_menu.mainloop()
+start_game_window = tk.Tk()
+start_game_window.title("Крестики-нолики")
+center_window(start_game_window, 400, 300)
+start_game_window.configure(bg="lightblue")
+
+header = tk.Label(start_game_window, text="Выберите сторону", font=("Arial", 20, "bold"), bg="lightblue", fg="darkblue")
+header.pack(pady=20)
+
+tk.Button(start_game_window, text="Играть за X", font=("Arial", 14), bg="white", command=start_game_X).pack(pady=10, fill="x", padx=50)
+tk.Button(start_game_window, text="Играть за O", font=("Arial", 14), bg="white", command=start_game_O).pack(pady=10, fill="x", padx=50)
+
+start_game_window.mainloop()
