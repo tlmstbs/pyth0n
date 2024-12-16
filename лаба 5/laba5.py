@@ -4,8 +4,14 @@
 Результаты сравнительного исследования времени вычисления представить в табличной форме.
 Обязательное требование – минимизация времени выполнения и объема памяти"""
 
+
+
+
+
 import timeit
 import math
+from math import factorial
+
 
 def recursive_f_optimized(n):
     if n == 1:
@@ -17,20 +23,25 @@ def recursive_f_optimized(n):
         m=-1 if n%2 else 1
         return m*  (recursive_f_optimized(n - 1) - recursive_f_optimized(n - 2) / factorial_3n)
 
+
 def iterative_f_optimized(n):
     if n == 1:
         return 2
     elif n == 2:
         return 4
+
     f_prev2 = 2  # F(1)
     f_prev1 = 4  # F(2)
     m=-1
+    factorial_3n=math.factorial(6)
     for i in range(3, n + 1):
-        factorial_3n = math.factorial(3*i)
+        factorial_3n*=(3*i-2)*(3*i-1)*(3*i)
         f_curr = m * (f_prev1 - f_prev2 / factorial_3n)
         m*=-1
         f_prev2, f_prev1 = f_prev1, f_curr
+
     return f_prev1
+
 
 def compare_execution_times_and_limits(n):
     recursive_time = timeit.timeit(lambda: recursive_f_optimized(n), number=10) * 100
@@ -39,5 +50,6 @@ def compare_execution_times_and_limits(n):
     print(f"Результат итерации для n={n}: {iterative_f_optimized(n)}")
     print(f"Время выполнения рекурсии: {recursive_time:.6f} секунд")
     print(f"Время выполнения итерации: {iterative_time:.6f} секунд")
+
 n_values = int(input("Введите число: "))
 compare_execution_times_and_limits(n_values)
